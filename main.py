@@ -1,5 +1,6 @@
 from fpdf import FPDF
 import pandas as pd
+from datetime import datetime
 
 WIDTH = 210
 HEIGHT = 297
@@ -39,8 +40,11 @@ Customer ID: {cust_acct}                             {date}
 
     def create_table_row(self, widths, row):
         self.set_font_size(9)
-        for width, datum in zip(widths, row):
-            self.cell(width, 5, self.format_data(datum), 1,0,'',True)
+        for idx, (width, datum) in enumerate(zip(widths, row)):
+            if idx == 2:
+                self.cell(width, 5, self.format_data(datum), 1,0,'',True)
+            else:
+                self.cell(width, 5, self.format_data(datum), 1,0,'C',True)
         self.ln()
 
     def create_table_footer(self):
@@ -64,7 +68,7 @@ Customer ID: {cust_acct}                             {date}
             if datum == '$nan':
                 datum = ''
         elif type(datum) == pd._libs.tslibs.timestamps.Timestamp:
-            datum = f'{datum.date()}'
+            datum = f'{datum.date().strftime("%m/%d/%Y")}'
         
         return datum
 
@@ -82,11 +86,11 @@ for cust_acct, data in grouped_df:
     city    = data.iloc[0]["Customer City"]
     state   = data.iloc[0]["Customer State"]
     zipcode = data.iloc[0]["Customer Zip"]
-    date    = '01/01/1900'
+    date    = datetime.today().strftime("%m/%d/%Y")
 
     pdf.create_header(date, acct, name, street, city, state, zipcode)
 
-    item_df = data[["Item #", 'Customer Part #', 'Item Name', 'Unit', 'New Price', 'From Date']]
+    item_df = data[["Item #", 'Customer Part #', 'Item Name', 'Unit', 'New Price', 'Effective Date']]
 
     widths = [28, 32, 60, 12, 30, 30]
     pdf.create_table_header(widths, item_df.columns)
@@ -97,13 +101,13 @@ for cust_acct, data in grouped_df:
                  row["Item Name"],
                  row["Unit"],
                  row["New Price"],
-                 row["From Date"]]
+                 row["Effective Date"]]
         pdf.create_table_row(widths, datum)
     
     pdf.create_table_footer()
     
-    pdf.output(f'output/{cust_acct}.pdf', 'F')
+    name = ''.join([c for c in name if c not in '\\/?:*<>|'])
+    pdf.output(f'output/{name} ({acct}).pdf', 'F')
 
     #pdf.output('test.pdf', 'F')
     #print()
-
