@@ -68,7 +68,7 @@ Customer ID: {cust_acct}                             {date}
         
         return datum
 
-df = pd.read_excel("data/data.xlsx", converters={'Acct': str})
+df = pd.read_excel("data/data.xlsx", converters={'Acct': str, 'Customer Zip': int})
 grouped_df = df.groupby(['Acct'])
 
 for cust_acct, data in grouped_df:
