@@ -61,15 +61,19 @@ Customer ID: {cust_acct}                             {date}
     def format_data(self, datum):
 
         if type(datum) == str:
+            print(f'{datum}\t\t{type(datum)}')
             if len(datum) > 30:
                 datum = datum[:30] + '...'
         elif type(datum) == float:
             datum = f'${datum:0.02f}'
             if datum == '$nan':
                 datum = ''
+        elif type(datum) == int:
+            datum = f'{datum:0.0f}'
+            if datum == '$nan':
+                datum = ''
         elif type(datum) == pd._libs.tslibs.timestamps.Timestamp:
             datum = f'{datum.date().strftime("%m/%d/%Y")}'
-        
         return datum
 
 df = pd.read_excel("data/data.xlsx", converters={'Acct': str, 'Customer Zip': int})
@@ -90,15 +94,16 @@ for cust_acct, data in grouped_df:
 
     pdf.create_header(date, acct, name, street, city, state, zipcode)
 
-    item_df = data[["Item #", 'Customer Part #', 'Item Name', 'Unit', 'New Price', 'Effective Date']]
+    item_df = data[["Item #", 'Customer Part #', 'Item Name', 'Qty', 'Unit', 'New Price', 'Effective Date']]
 
-    widths = [28, 32, 60, 12, 30, 30]
+    widths = [24, 32, 56, 12, 12, 26, 30]
     pdf.create_table_header(widths, item_df.columns)
 
     for df_idx, row in item_df.iterrows():
         datum = [row["Item #"],
                  row["Customer Part #"],
                  row["Item Name"],
+                 row["Qty"],
                  row["Unit"],
                  row["New Price"],
                  row["Effective Date"]]
